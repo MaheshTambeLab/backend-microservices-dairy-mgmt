@@ -1,0 +1,40 @@
+version: '3.8'
+
+networks:
+  internal:
+    driver: bridge
+services:
+  product-service-db:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: admin_user
+    ports:
+      - '5433:5432'
+    volumes:
+      - C:\Users\ymt01\Documents\db_volumes\product-service-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin_user -d productdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  application:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: product-service:latest
+    depends_on:
+      product-service-db:
+        condition: service_healthy
+    ports:
+      - '4000:4000'
+    environment:
+      SPRING_DATASOURCE_URL: 'jdbc:postgresql://product-service-db:5432/productdb'
+      SPRING_DATASOURCE_USERNAME: admin_user
+      SPRING_DATASOURCE_PASSWORD: password
+    networks:
+      - internal
