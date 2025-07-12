@@ -3,6 +3,10 @@ version: '3.8'
 networks:
   internal:
     driver: bridge
+  shared-network:
+    external: true
+    name: dairy-network
+
 services:
   product-service-db:
     image: 'postgres:latest'
@@ -27,6 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: product-service:latest
+    container_name: product-service
     depends_on:
       product-service-db:
         condition: service_healthy
@@ -38,3 +43,4 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
     networks:
       - internal
+      - shared-network
